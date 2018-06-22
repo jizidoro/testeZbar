@@ -1,0 +1,63 @@
+apply plugin: 'com.android.application'
+
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
+
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url 'https://oss.sonatype.org/content/repositories/ksoap2-android-releases/' }
+    }
+    dependencies {
+        //classpath 'com.android.tools.build:gradle:0.8.+'
+        classpath 'com.google.code.ksoap2-android:ksoap2-android:3.6.2'
+    }
+}
+
+repositories {
+    maven { url 'https://oss.sonatype.org/content/repositories/ksoap2-android-releases/' }
+}
+
+android {
+    compileSdkVersion 27
+    defaultConfig {
+        applicationId "com.malharia.b3.b3malharizbar"
+        minSdkVersion 21
+        targetSdkVersion 27
+        versionCode 9
+        versionName "1.9"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+            }
+        }
+    }
+    signingConfigs {
+        release {
+            storeFile file("C:/Program Files (x86)/Java/jdk1.8.0_152/bin/filename.keystore")
+            storePassword "b3@123"
+            keyAlias "keystore.alias"
+            keyPassword "qwer1234"
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+    implementation 'me.dm7.barcodescanner:zbar:1.9.8'
+    implementation 'com.google.code.ksoap2-android:ksoap2-android:3.6.2'
+}
