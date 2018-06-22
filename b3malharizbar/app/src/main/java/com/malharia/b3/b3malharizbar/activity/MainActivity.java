@@ -8,10 +8,13 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.TypedValue;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.Wsdl2Code.WebServices.AppService.RolosOrdem;
+import com.malharia.b3.b3malharizbar.BuildConfig;
 import com.malharia.b3.b3malharizbar.R;
 import com.malharia.b3.b3malharizbar.model.MarcadoOperations;
 import com.malharia.b3.b3malharizbar.model.RoloOperations;
@@ -30,6 +33,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(state);
         setContentView(R.layout.activity_main);
         setupToolbar();
+
+        TextView mTv = (TextView) findViewById(R.id.numero_versao);
+        mTv.setText(BuildConfig.VERSION_NAME);
+        mTv.setTextSize(TypedValue.COMPLEX_UNIT_DIP,30);
+        //mTv.setTextColor(ContextCompat.getColor(this, R.color.));
+
         Sessao data = null;
         try{
             sessaoOps = new SessaoOperations(MainActivity.this);

@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.Intent;
 
 import com.malharia.b3.b3malharizbar.R;
 import com.malharia.b3.b3malharizbar.model.Marcado;
@@ -44,36 +45,22 @@ public class HelperFragment extends ListFragment implements MessageDialogFragmen
     public void onListItemClick(ListView l, View v, int position, long id)
     {
         super.onListItemClick(l, v, position, id);
+    }
 
-        sessaoOps = new SessaoOperations(getContext());
-        marcadoOps = new MarcadoOperations(getContext());
-        sessaoOps.open();
-        marcadoOps.open();
-        Sessao primeiro;
+    public void launchActivity(Class<?> clss) {
 
+        Intent intent = new Intent(getActivity(), clss);
+        startActivity(intent);
 
-        String[] leitura = adapter.getItemText(position).split("_");
-
-        //String CodItem = leitura[0];
-        String NumLote = leitura[2].trim();
-        String NumPeca = leitura[3].trim();
-
-        Marcado marcado  = marcadoOps.getMarcadoByDados(NumLote,NumPeca);
-
-        List<Sessao> allsessao = sessaoOps.getAllSessaos();
-        if (allsessao.size() > 0) {
-            primeiro = sessaoOps.getFirstSessao();
-            primeiro.setRoloTroca("teste");
-            sessaoOps.updateSessao(primeiro);
-        }
-        sessaoOps.close();
-        marcadoOps.close();
-
-        showMessageDialog(adapter.getItemText(position).toString());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,Bundle savedInstanceState) {
+        rowItems = GetDadosOrdem();
+
+        adapter = new CustomAdapter(activity, rowItems);
+        setListAdapter(adapter);
+
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
@@ -117,6 +104,8 @@ public class HelperFragment extends ListFragment implements MessageDialogFragmen
     @Override
     public void onDialogPositiveClick(DialogFragment dialog) {
         int groselia = 1;
+        Intent intent = new Intent(getContext(), FullScannerAlterarPecaActivity.class);
+        startActivity(intent);
     }
 
 

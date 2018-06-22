@@ -18,4 +18,9 @@
     <string name="select_camera">Select a Camera</string>
     <string name="ok_button">OK</string>
     <string name="cancel_button">Cancel</string>
+    <string name="entrar_com_o_usuario">Entrar com o usuario</string>
+    <string name="voltar">Voltar</string>
+    <string name="oper_finalizada">Finalizar</string>
+    <string name="cabecalho">LOCAL - ENDEREÇO - LOTE - PEÇA</string>
+
 </resources>

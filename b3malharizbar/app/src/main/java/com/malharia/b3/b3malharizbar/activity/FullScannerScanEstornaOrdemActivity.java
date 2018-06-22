@@ -1,6 +1,7 @@
 package com.malharia.b3.b3malharizbar.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,6 +10,8 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
@@ -186,7 +189,7 @@ public class FullScannerScanEstornaOrdemActivity extends BaseScannerActivity imp
             new LongOperation(this).execute(ResultadoScaneado);
 
         }
-        //showMessageDialog("Contents = " + rawResult.getContents() + ", Format = " + rawResult.getBarcodeFormat().getName());
+        showMessageDialog("Dados = " + rawResult.getContents());
 
 
     }
@@ -270,6 +273,31 @@ public class FullScannerScanEstornaOrdemActivity extends BaseScannerActivity imp
     }
 
 
+    @SuppressLint("HandlerLeak")
+    Handler myHandler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 0:
+                    showMessageDialog("Ordem estornada");
+                    launchActivity(MainActivity.class);
+                    break;
+                case 1:
+                    showMessageDialog("Erro interno no Logix");
+                    break;
+                case 2:
+                    showMessageDialog("Erro interno no App");
+                    break;
+                case 3:
+                    showMessageDialog("Erro conexão no Logix");
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
     private SessaoOperations sessaoOps;
     private class LongOperation extends AsyncTask<String, Void, String>
     {
@@ -285,39 +313,41 @@ public class FullScannerScanEstornaOrdemActivity extends BaseScannerActivity imp
 
 
             AppService srv1 = new AppService();
-            int numero_ordem = Integer.parseInt(params[0]);
-            //txt.setText("Web service funcionando.");
 
-            sessaoOps = new SessaoOperations(mContext);
-            sessaoOps.open();
-            Sessao primeiro = new Sessao();
-            List<Sessao> allsessao = sessaoOps.getAllSessaos();
-            if (allsessao.size() > 0) {
-                primeiro = sessaoOps.getFirstSessao();
-                primeiro.setOrdem(numero_ordem);
-                sessaoOps.updateSessao(primeiro);
-            }
+            boolean testeLogix = srv1.ValidaCracha("erro");
+            if(!testeLogix) {
 
+                int numero_ordem = Integer.parseInt(params[0]);
+                //txt.setText("Web service funcionando.");
 
-
-            try
-            {
-                boolean estornado = srv1.EstornaOrdem(primeiro.getCracha(),primeiro.getOrdem());
-                if(estornado)
-                {
-                    showMessageDialog("Ordem estornada");
+                sessaoOps = new SessaoOperations(mContext);
+                sessaoOps.open();
+                Sessao primeiro = new Sessao();
+                List<Sessao> allsessao = sessaoOps.getAllSessaos();
+                if (allsessao.size() > 0) {
+                    primeiro = sessaoOps.getFirstSessao();
+                    primeiro.setOrdem(numero_ordem);
+                    sessaoOps.updateSessao(primeiro);
                 }
-                else
-                {
-                    showMessageDialog("Erro AppService");
-                }
-            }
-            catch(Exception ex)
-            {
-                showMessageDialog(ex.getMessage());
-            }
 
-            sessaoOps.close();
+                try {
+                    boolean estornado = srv1.EstornaOrdem(primeiro.getCracha(), primeiro.getOrdem());
+                    if (estornado) {
+                        myHandler.sendEmptyMessage(0);
+                    } else {
+                        myHandler.sendEmptyMessage(1);
+                    }
+                } catch (Exception ex) {
+                    myHandler.sendEmptyMessage(2);
+                    //showMessageDialog(ex.getMessage());
+                }
+
+                sessaoOps.close();
+            }
+            else
+            {
+                myHandler.sendEmptyMessage(3);
+            }
             return "Executed";
         }
 

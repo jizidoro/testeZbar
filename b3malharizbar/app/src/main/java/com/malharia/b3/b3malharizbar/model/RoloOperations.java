@@ -73,7 +73,7 @@ public class RoloOperations {
 
         Cursor cursor = database.query(DBHandler.TABLE_ROLO, new String[] {DBHandler.ROLO_COLUMN_ID, DBHandler.ROLO_COLUMN_CODITEM, DBHandler.ROLO_COLUMN_ENDERECO
                 , DBHandler.ROLO_COLUMN_LOCAL, DBHandler.ROLO_COLUMN_ORDEM, DBHandler.ROLO_COLUMN_PERMITESUBSTITUIR, DBHandler.ROLO_COLUMN_POSICAO
-                , DBHandler.ROLO_COLUMN_NUMLOTE, DBHandler.ROLO_COLUMN_NUMPECA},  DBHandler.ROLO_COLUMN_NUMPECA + " like " + "'%" + nPeca + "%'", null, null, null, null);
+                , DBHandler.ROLO_COLUMN_NUMLOTE, DBHandler.ROLO_COLUMN_NUMPECA},  DBHandler.ROLO_COLUMN_NUMPECA + " like " + "'%" + nPeca + "%'" + " and " + DBHandler.ROLO_COLUMN_NUMLOTE  + " like " + "'%" + nLote + "%'", null, null, null, null);
         if (cursor != null) {
             cursor.moveToFirst();
         }
@@ -105,9 +105,84 @@ public class RoloOperations {
         return rolos;
     }
 
+    public boolean getSubstituirMarcarRolo(String cItem, String nLote, String nPeca) {
+
+        //Cursor cursor = database.query(DBHandler.TABLE_ROLO,allColumns,DBHandler.ROLO_COLUMN_CODITEM + "=?" + cItem  + DBHandler.ROLO_COLUMN_CODITEM + "=?" + nLote + DBHandler.ROLO_COLUMN_CODITEM + "=?" + nPeca ,null,null, null, null);
+
+        Cursor cursor = database.query(DBHandler.TABLE_ROLO, new String[] {DBHandler.ROLO_COLUMN_ID, DBHandler.ROLO_COLUMN_CODITEM, DBHandler.ROLO_COLUMN_ENDERECO
+                , DBHandler.ROLO_COLUMN_LOCAL, DBHandler.ROLO_COLUMN_ORDEM, DBHandler.ROLO_COLUMN_PERMITESUBSTITUIR, DBHandler.ROLO_COLUMN_POSICAO
+                , DBHandler.ROLO_COLUMN_NUMLOTE, DBHandler.ROLO_COLUMN_NUMPECA},  DBHandler.ROLO_COLUMN_NUMLOTE  + " like " + "'%" + nLote + "%'" + " and " + DBHandler.ROLO_COLUMN_POSICAO  + " = " + "0", null, null, null, null);
+        if (cursor != null) {
+            cursor.moveToFirst();
+        }
+
+        Rolo rolos = new Rolo();
+        if(cursor.getCount() > 0){
+            cursor.moveToFirst();
+            Rolo rolo = new Rolo();
+            rolo.setId(cursor.getLong(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_ID)));
+            rolo.setCodItem(cursor.getString(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_CODITEM)));
+            rolo.setEndereco(cursor.getString(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_ENDERECO)));
+            rolo.setLocal(cursor.getString(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_LOCAL)));
+            rolo.setNumLote(cursor.getString(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_NUMLOTE)));
+            rolo.setNumPeca(cursor.getString(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_NUMPECA)));
+            rolo.setOrdem(cursor.getInt(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_ORDEM)));
+            rolo.setPermiteSubstituir(cursor.getString(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_PERMITESUBSTITUIR)));;
+            rolo.setPosicao(cursor.getInt(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_POSICAO)));
+            rolos = rolo;
+        }
+        else
+        {
+            return false;
+        }
+
+        //Rolo e = new Rolo(Integer.parseInt(cursor.getString(0)),cursor.getString(1),cursor.getString(2),cursor.getString(3),cursor.getString(4),cursor.getString(5),cursor.getString(6).charAt(0),Integer.parseInt(cursor.getString(7)),Integer.parseInt(cursor.getString(8)));
+
+        cursor.close();
+        return true;
+    }
+
+    public Rolo getFirstNaoMarcaroRolo(String cItem, String nLote, String nPeca) {
+
+        //Cursor cursor = database.query(DBHandler.TABLE_ROLO,allColumns,DBHandler.ROLO_COLUMN_CODITEM + "=?" + cItem  + DBHandler.ROLO_COLUMN_CODITEM + "=?" + nLote + DBHandler.ROLO_COLUMN_CODITEM + "=?" + nPeca ,null,null, null, null);
+
+        Cursor cursor = database.query(DBHandler.TABLE_ROLO, new String[] {DBHandler.ROLO_COLUMN_ID, DBHandler.ROLO_COLUMN_CODITEM, DBHandler.ROLO_COLUMN_ENDERECO
+                , DBHandler.ROLO_COLUMN_LOCAL, DBHandler.ROLO_COLUMN_ORDEM, DBHandler.ROLO_COLUMN_PERMITESUBSTITUIR, DBHandler.ROLO_COLUMN_POSICAO
+                , DBHandler.ROLO_COLUMN_NUMLOTE, DBHandler.ROLO_COLUMN_NUMPECA},  DBHandler.ROLO_COLUMN_NUMLOTE  + " like " + "'%" + nLote + "%'" + " and " + DBHandler.ROLO_COLUMN_POSICAO  + " = " + "0", null, null, null, DBHandler.ROLO_COLUMN_NUMPECA);
+        if (cursor != null) {
+            cursor.moveToFirst();
+        }
+
+        Rolo rolos = new Rolo();
+        if(cursor.getCount() > 0){
+            cursor.moveToFirst();
+            Rolo rolo = new Rolo();
+            rolo.setId(cursor.getLong(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_ID)));
+            rolo.setCodItem(cursor.getString(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_CODITEM)));
+            rolo.setEndereco(cursor.getString(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_ENDERECO)));
+            rolo.setLocal(cursor.getString(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_LOCAL)));
+            rolo.setNumLote(cursor.getString(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_NUMLOTE)));
+            rolo.setNumPeca(cursor.getString(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_NUMPECA)));
+            rolo.setOrdem(cursor.getInt(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_ORDEM)));
+            rolo.setPermiteSubstituir(cursor.getString(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_PERMITESUBSTITUIR)));;
+            rolo.setPosicao(cursor.getInt(cursor.getColumnIndex(DBHandler.ROLO_COLUMN_POSICAO)));
+            rolos = rolo;
+
+        }
+        else
+        {
+            return null;
+        }
+
+        //Rolo e = new Rolo(Integer.parseInt(cursor.getString(0)),cursor.getString(1),cursor.getString(2),cursor.getString(3),cursor.getString(4),cursor.getString(5),cursor.getString(6).charAt(0),Integer.parseInt(cursor.getString(7)),Integer.parseInt(cursor.getString(8)));
+
+        cursor.close();
+        return rolos;
+    }
+
     public List<Rolo> getAllRolos() {
 
-        Cursor cursor = database.query(DBHandler.TABLE_ROLO,allColumns,null,null,null, null, null);
+        Cursor cursor = database.query(DBHandler.TABLE_ROLO,allColumns,null,null,null, null,  DBHandler.ROLO_COLUMN_NUMPECA);
 
         List<Rolo> rolos = new ArrayList<>();
         if(cursor.getCount() > 0){

@@ -22,6 +22,7 @@ import com.Wsdl2Code.WebServices.AppService.AppService;
 import com.Wsdl2Code.WebServices.AppService.RolosOrdem;
 import com.malharia.b3.b3malharizbar.R;
 import com.malharia.b3.b3malharizbar.customzbar.CustomZBarScannerView;
+import com.malharia.b3.b3malharizbar.model.Rolo;
 import com.malharia.b3.b3malharizbar.model.RoloOperations;
 import com.malharia.b3.b3malharizbar.model.Sessao;
 import com.malharia.b3.b3malharizbar.model.SessaoOperations;
@@ -289,9 +290,11 @@ public class FullScannerAlterarPecaActivity extends BaseScannerActivity implemen
             String novoRolo = params[0];
 
             sessaoOps = new SessaoOperations(mContext);
+            roloOps = new RoloOperations(mContext);
             sessaoOps.open();
+            roloOps.open();
             Sessao primeiro;
-            String numTroca;
+            String numTroca = "";
 
             List<Sessao> allsessao = sessaoOps.getAllSessaos();
             if (allsessao.size() > 0) {
@@ -300,35 +303,15 @@ public class FullScannerAlterarPecaActivity extends BaseScannerActivity implemen
                 primeiro.setRoloTroca(null);
                 sessaoOps.updateSessao(primeiro);
             }
+
+            Rolo roloTRoca = roloOps.getMarcarRolo("" ,"" ,numTroca);
+
+            roloTRoca.NumPeca = numTroca;
+            roloOps.updateRolo(roloTRoca);
+            roloOps.close();
             sessaoOps.close();
 
-            /*
-            AppService srv1 = new AppService();
-            boolean crachaValido = srv1.ValidaCracha(params[0].toString());
-            //txt.setText("Web service funcionando.");
 
-            if(crachaValido) {
-                sessaoOps = new SessaoOperations(mContext);
-                sessaoOps.open();
-
-
-                List<Sessao> teste = sessaoOps.getAllSessaos();
-                if (teste.size() > 0) {
-                    sessaoOps.removeSessao();
-                }
-
-                Sessao data = new Sessao();
-                data.setCracha(params[0].toString());
-
-                sessaoOps.addSessao(data);
-
-                launchActivity(ScanOrdemActivity.class);
-            }
-            else
-            {
-                showMessageDialog("Peca indisponivel");
-            }
-            */
             return "Executed";
         }
 
@@ -336,6 +319,7 @@ public class FullScannerAlterarPecaActivity extends BaseScannerActivity implemen
         protected void onPostExecute(String result) {
             // might want to change "executed" for the returned string passed
             // into onPostExecute() but that is upto you
+            launchActivity(ScanRolosActivity.class);
         }
 
         @Override

@@ -72,16 +72,14 @@ public class MarcadoOperations {
 
         Marcado marcados = new Marcado();
         if(cursor.getCount() > 0){
-            while(cursor.moveToNext()){
-                Marcado marcado = new Marcado();
-                marcado.setId(cursor.getLong(cursor.getColumnIndex(DBHandler.MARCADO_COLUMN_ID)));
-                marcado.setCodItem(cursor.getString(cursor.getColumnIndex(DBHandler.MARCADO_COLUMN_CODITEM)));
-                marcado.setNumLote(cursor.getString(cursor.getColumnIndex(DBHandler.MARCADO_COLUMN_NUMLOTE)));
-                marcado.setNumPeca(cursor.getString(cursor.getColumnIndex(DBHandler.MARCADO_COLUMN_NUMPECA)));
-                marcado.setOrdem(cursor.getInt(cursor.getColumnIndex(DBHandler.MARCADO_COLUMN_ORDEM)));
-                marcado.setPosicao(cursor.getInt(cursor.getColumnIndex(DBHandler.MARCADO_COLUMN_POSICAO)));
-                marcados = marcado;
-            }
+            Marcado marcado = new Marcado();
+            marcado.setId(cursor.getLong(cursor.getColumnIndex(DBHandler.MARCADO_COLUMN_ID)));
+            marcado.setCodItem(cursor.getString(cursor.getColumnIndex(DBHandler.MARCADO_COLUMN_CODITEM)));
+            marcado.setNumLote(cursor.getString(cursor.getColumnIndex(DBHandler.MARCADO_COLUMN_NUMLOTE)));
+            marcado.setNumPeca(cursor.getString(cursor.getColumnIndex(DBHandler.MARCADO_COLUMN_NUMPECA)));
+            marcado.setOrdem(cursor.getInt(cursor.getColumnIndex(DBHandler.MARCADO_COLUMN_ORDEM)));
+            marcado.setPosicao(cursor.getInt(cursor.getColumnIndex(DBHandler.MARCADO_COLUMN_POSICAO)));
+            marcados = marcado;
         }
         else
         {

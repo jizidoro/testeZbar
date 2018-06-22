@@ -1,11 +1,15 @@
 package com.malharia.b3.b3malharizbar.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
@@ -41,6 +45,9 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
     private RoloOperations roloOps;
     private MarcadoOperations marcadoOps;
 
+    private Button fimOp;
+    private Button btnVoltar;
+
     CustomAdapter adapter;
     private List<RowItem> rowItems;
 
@@ -62,13 +69,28 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
         setListAdapter(adapter);
         */
 
+        fimOp = (Button) findViewById(R.id.button_operacao);
+        fimOp.setBackgroundColor(Color.GREEN);
+        //fimOp.setEnabled(false);
+
+        btnVoltar = (Button) findViewById(R.id.button_voltar);
+        btnVoltar.setBackgroundColor(Color.GRAY);
+
         listaPecas = (ListView) findViewById(R.id.lvOrdens);
 
-        //rowItems = GetDadosOrdem();
+        rowItems = GetDadosOrdem();
 
-        //adapter = new CustomAdapter(this, rowItems);
-        //listaPecas.setAdapter(adapter);
+        adapter = new CustomAdapter(this, rowItems);
+        listaPecas.setAdapter(adapter);
 
+    }
+
+    @Override
+    public void onBackPressed()
+    {
+        // code here to show dialog
+        super.onBackPressed();  // optional depending on your needs
+        launchActivity(MainActivity.class);
     }
 
     public void setupToolbar() {
@@ -85,12 +107,20 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
     }
 
     public void terminaOperacao(View v) {
-
+        fimOp.setEnabled(false);
+        fimOp.setText("Processando no Logix");
+        fimOp.setBackgroundColor(0xFFFFA500);
         new LongOperation(this).execute();
     }
 
+    public void voltar(View v) {
+        // code here to show dialog
+        super.onBackPressed();  // optional depending on your needs
+        launchActivity(MainActivity.class);
+    }
+
     public void showMessageDialog(String message) {
-        DialogFragment fragment = MessageDialogFragment.newInstance("Resultado", message, this);
+        DialogFragment fragment = MessageDialogFragment.newInstance("", message, this);
         fragment.show(getSupportFragmentManager(), "scan_results");
     }
 
@@ -148,6 +178,8 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
     }
 
 
+
+
     public List<RowItem> GetDadosOrdem()
     {
         //String dbPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), "bancoB3.db3");
@@ -175,8 +207,6 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
 
         List<Rolo> allRolos = roloOps.getAllRolos();
 
-
-
         //rolos = dadosRolos.Where(x => x.Ordem == sessao.Ordem).ToList();
         //db.Close();
 
@@ -185,8 +215,6 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
 
         if (allRolos.size() > 0)
         {
-
-
             for (Rolo item : allRolos)
             {
                 if(item.Local != null)
@@ -220,6 +248,42 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
         return rowItems;
     }
 
+
+    @SuppressLint("HandlerLeak")
+    Handler handlerOperacaoEncerramento = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 0:
+                    showMessageDialog("Operação concluida");
+                    fimOp.setText("Finalizado");
+                    fimOp.setBackgroundColor(Color.GRAY);
+                    break;
+                case 1:
+                    showMessageDialog("Erro no logix");
+                    fimOp.setBackgroundColor(Color.GREEN);
+                    fimOp.setText("Finalizar");
+                    fimOp.setEnabled(true);
+                    break;
+                case 2:
+                    showMessageDialog("Erro no web service");
+                    fimOp.setBackgroundColor(Color.GREEN);
+                    fimOp.setText("Finalizar");
+                    fimOp.setEnabled(true);
+                    break;
+                case 3:
+                    showMessageDialog("Erro: Favor Reiniciar a operação");
+                    fimOp.setBackgroundColor(Color.GREEN);
+                    fimOp.setText("Finalizar");
+                    fimOp.setEnabled(true);
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
     private class LongOperation extends AsyncTask<String, Void, String>
     {
         private Context mContext;
@@ -242,7 +306,7 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
                 marcadoOps.open();
                 List<Marcado> allMarcado = marcadoOps.getAllMarcado();
 
-                if (allMarcado.size() >= allRolos.size()) {
+                if (allMarcado.size() >= allRolos.size() && allRolos.size() > 0) {
                     sessaoOps = new SessaoOperations(mContext);
                     sessaoOps.open();
 
@@ -250,12 +314,12 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
                     Sessao primeiro = new Sessao();
                     if (allsessao.size() > 0) {
                         primeiro = sessaoOps.getFirstSessao();
-                        long tsAgora = (System.currentTimeMillis()/1000);
+                        long tsAgora = (System.currentTimeMillis()/1000/60);
                         primeiro.setFimOperacao(tsAgora);
                         sessaoOps.updateSessao(primeiro);
                     }
 
-                    long tempoTotalOperacao = primeiro.getFimOperacao() - primeiro.getInicioOperacao();
+                    int tempoTotalOperacao = (int)(primeiro.getFimOperacao() - primeiro.getInicioOperacao());
 
                     VectorRolosOrdem rolov = new VectorRolosOrdem();
                     for (Rolo item : allRolos) {
@@ -273,26 +337,29 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
                     try {
                         AppService srv1 = new AppService();
                         //boolean operacaoFim = srv1.FinalizaSeparacao(primeiro.getCracha(), primeiro.getOrdem(), rolov , tempoTotalOperacao);
-                        boolean operacaoFim = srv1.FinalizaSeparacao(primeiro.getCracha(), primeiro.getOrdem(), rolov);
+                        boolean operacaoFim = srv1.FinalizaSeparacao(primeiro.getCracha(), primeiro.getOrdem(), rolov,tempoTotalOperacao);
                         if(operacaoFim)
                         {
-                            showMessageDialog("Operação concluida");
+                            handlerOperacaoEncerramento.sendEmptyMessage(0);
                         }
                         else
                         {
-                            showMessageDialog("Erro na conclusão");
+                            handlerOperacaoEncerramento.sendEmptyMessage(1);
+
                         }
 
                     } catch (Exception ex) {
-                        showMessageDialog(ex.getMessage());
+                        handlerOperacaoEncerramento.sendEmptyMessage(2);
                     }
 
                     //Intent intent = new Intent(mContext, EncerramentoActivity.class);
                     //startActivity(intent);
 
                 }
+                else
+                {}
             } catch (Exception ex) {
-                showMessageDialog(ex.getMessage());
+                handlerOperacaoEncerramento.sendEmptyMessage(3);
             }
 
             marcadoOps.close();

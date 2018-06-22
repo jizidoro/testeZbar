@@ -72,7 +72,14 @@ public class CustomAdapter extends BaseAdapter {
         marcadosAtual = GetDadosMarcado(row_pos.getTitle());
         if(marcadosAtual != null)
         {
-            txtTitle.setBackgroundColor(0xFF00FF00);
+            if(marcadosAtual.Posicao == 0)
+            {
+                txtTitle.setBackgroundColor(0xFF00FF00);
+            }
+            else if(marcadosAtual.Posicao == 1)
+            {
+                txtTitle.setBackgroundColor(0xFFFFFF00);
+            }
         }
 
         return convertView;

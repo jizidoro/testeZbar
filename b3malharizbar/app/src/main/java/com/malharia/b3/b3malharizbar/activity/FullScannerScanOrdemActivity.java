@@ -187,7 +187,7 @@ public class FullScannerScanOrdemActivity extends BaseScannerActivity implements
         } catch (Exception e) {}
         ResultadoScaneado = rawResult.getContents();
 
-        showMessageDialog("Dados = " + rawResult.getContents() );
+        showMessageDialog("Número da ordem = " + rawResult.getContents() );
 
     }
 
@@ -225,20 +225,7 @@ public class FullScannerScanOrdemActivity extends BaseScannerActivity implements
 
     }
 
-    @SuppressLint("HandlerLeak")
-    Handler myHandler = new Handler() {
 
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case 0:
-                    launchActivity(ScanRolosActivity.class);
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
 
 
 
@@ -281,6 +268,24 @@ public class FullScannerScanOrdemActivity extends BaseScannerActivity implements
         closeFormatsDialog();
     }
 
+    @SuppressLint("HandlerLeak")
+    Handler myHandler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 0:
+                    launchActivity(ScanRolosActivity.class);
+                    break;
+                case 1:
+                    showMessageDialog("Falha ao conectar ao Logix");
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
     private SessaoOperations sessaoOps;
     private RoloOperations roloOps;
     private class LongOperation extends AsyncTask<String, Void, String> {
@@ -307,7 +312,7 @@ public class FullScannerScanOrdemActivity extends BaseScannerActivity implements
                 if (allsessao.size() > 0) {
                     Sessao primeiro = sessaoOps.getFirstSessao();
                     primeiro.setOrdem(numero_ordem);
-                    long tsAgora = (System.currentTimeMillis()/1000);
+                    long tsAgora = (System.currentTimeMillis()/1000/60);
                     primeiro.setInicioOperacao(tsAgora);
                     sessaoOps.updateSessao(primeiro);
                 }
@@ -315,7 +320,6 @@ public class FullScannerScanOrdemActivity extends BaseScannerActivity implements
                 roloOps = new RoloOperations(mContext);
                 roloOps.open();
 
-                int i = 0;
                 for(RolosOrdem item : rolos)
                 {
                     Rolo data = new Rolo();
@@ -325,14 +329,24 @@ public class FullScannerScanOrdemActivity extends BaseScannerActivity implements
                     data.NumLote = item.numLote;
                     data.NumPeca = item.numPeca;
                     data.PermiteSubstituir = item.permiteSubstituir;
-                    data.Posicao = i;
+                    data.Posicao = 0;
                     data.Ordem = numero_ordem;
                     roloOps.addRolo(data);
-                    i++;
                 }
+
+                List<Rolo> allRolos = roloOps.getAllRolos();
 
                 sessaoOps.close();
                 roloOps.close();
+
+                if(allRolos.size() > 0)
+                {
+                    myHandler.sendEmptyMessage(0);
+                }
+                else
+                {
+                    myHandler.sendEmptyMessage(1);
+                }
             }
             return "Executed";
         }
@@ -343,7 +357,7 @@ public class FullScannerScanOrdemActivity extends BaseScannerActivity implements
             // might want to change "executed" for the returned string passed
             // into onPostExecute() but that is upto you
 
-            myHandler.sendEmptyMessage(0);
+
 
         }
 

@@ -1,6 +1,7 @@
 package com.malharia.b3.b3malharizbar.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,6 +10,8 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
@@ -177,7 +180,13 @@ public class FullScannerMainActivity extends BaseScannerActivity implements Mess
             r.play();
         } catch (Exception e) {}
         ResultadoScaneado = rawResult.getContents();
-        showMessageDialog("Dados = " + rawResult.getContents());
+        //showMessageDialog("Dados do cracha = " + rawResult.getContents());
+        if(ResultadoScaneado != null)
+        {
+            new LongOperation(this).execute(ResultadoScaneado);
+
+        }
+
     }
 
     public void showMessageDialog(String message) {
@@ -205,19 +214,6 @@ public class FullScannerMainActivity extends BaseScannerActivity implements Mess
     public void onDialogPositiveClick(DialogFragment dialog) {
         // Resume the camera
         mScannerView.resumeCameraPreview(this);
-
-        if(ResultadoScaneado != null)
-        {
-            mScannerView.stopCameraPreview(); //stopPreview
-            mScannerView.stopCamera();
-            mScannerView.destroyDrawingCache();
-            new LongOperation(this).execute(ResultadoScaneado);
-            //finish();
-            //Intent intent = new Intent(this, ScanOrdemActivity.class);
-
-
-        }
-
 
     }
 
@@ -273,6 +269,28 @@ public class FullScannerMainActivity extends BaseScannerActivity implements Mess
     }
 
 
+    @SuppressLint("HandlerLeak")
+    Handler myHandler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case 0:
+                    launchActivity(ScanOrdemActivity.class);
+                    break;
+                case 1:
+                    showMessageDialog("Erro ,tente novamente");
+                    break;
+                case 2:
+                    showMessageDialog("Falha ao conectar ao Logix");
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
+
     private SessaoOperations sessaoOps;
     private class LongOperation extends AsyncTask<String, Void, String>
     {
@@ -287,30 +305,35 @@ public class FullScannerMainActivity extends BaseScannerActivity implements Mess
         protected String doInBackground(String... params) {
 
             AppService srv1 = new AppService();
-            boolean crachaValido = srv1.ValidaCracha(params[0].toString());
-            //txt.setText("Web service funcionando.");
+            boolean testeLogix = srv1.ValidaCracha("erro");
+            if(!testeLogix) {
+                boolean crachaValido = srv1.ValidaCracha(params[0]);
+                //txt.setText("Web service funcionando.");
 
-            if(crachaValido) {
-                sessaoOps = new SessaoOperations(mContext);
-                sessaoOps.open();
+                if (crachaValido) {
+                    sessaoOps = new SessaoOperations(mContext);
+                    sessaoOps.open();
 
 
-                List<Sessao> teste = sessaoOps.getAllSessaos();
-                if (teste.size() > 0) {
-                    sessaoOps.removeSessao();
+                    List<Sessao> teste = sessaoOps.getAllSessaos();
+                    if (teste.size() > 0) {
+                        sessaoOps.removeSessao();
+                    }
+
+                    Sessao data = new Sessao();
+                    data.setCracha(params[0]);
+
+                    sessaoOps.addSessao(data);
+                    sessaoOps.close();
+
+                    myHandler.sendEmptyMessage(0);
+                } else {
+                    myHandler.sendEmptyMessage(1);
                 }
-
-                Sessao data = new Sessao();
-                data.setCracha(params[0].toString());
-
-                sessaoOps.addSessao(data);
-
-
-                sessaoOps.close();
             }
             else
             {
-                showMessageDialog("Usuario inv");
+                myHandler.sendEmptyMessage(2);
             }
             return "Executed";
         }
@@ -319,7 +342,7 @@ public class FullScannerMainActivity extends BaseScannerActivity implements Mess
         protected void onPostExecute(String result) {
             // might want to change "executed" for the returned string passed
             // into onPostExecute() but that is upto you
-            launchActivity(ScanOrdemActivity.class);
+
         }
 
         @Override

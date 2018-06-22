@@ -74,12 +74,15 @@ public class FullScannerFragment extends Fragment implements MessageDialogFragme
         }
         setupFormats();
         return mScannerView;
+
+
     }
 
     @Override
     public void onCreate(Bundle state) {
         super.onCreate(state);
         setHasOptionsMenu(true);
+        //new LongOperation(getContext()).execute("1;7459;74307-01-040;1");
     }
 
     public void onCreateOptionsMenu (Menu menu, MenuInflater inflater) {
@@ -253,9 +256,7 @@ public class FullScannerFragment extends Fragment implements MessageDialogFragme
 
             Intent intent = new Intent(getActivity(), clss);
             startActivity(intent);
-
     }
-
 
     private SessaoOperations sessaoOps;
     private RoloOperations roloOps;
@@ -267,7 +268,6 @@ public class FullScannerFragment extends Fragment implements MessageDialogFragme
         public LongOperation (Context context){
             mContext = context;
         }
-
 
         @Override
         protected String doInBackground(String... params) {
@@ -282,8 +282,6 @@ public class FullScannerFragment extends Fragment implements MessageDialogFragme
             List<Rolo> allRolos = roloOps.getAllRolos();
             Rolo roloAtual = roloOps.getMarcarRolo(CodItem ,NumLote ,NumPeca);
 
-
-
             marcadoOps = new MarcadoOperations(mContext);
             marcadoOps.open();
 
@@ -295,7 +293,44 @@ public class FullScannerFragment extends Fragment implements MessageDialogFragme
                 data.setNumPeca(NumPeca);
                 data.setOrdem(0);
                 data.setPosicao(0);
+                roloAtual.setPosicao(1);
+                roloOps.updateRolo(roloAtual);
                 marcadoOps.addMarcado(data);
+            }
+            else
+            {
+                Rolo roloSubstituido = roloOps.getFirstNaoMarcaroRolo(CodItem ,NumLote ,NumPeca);
+                if(roloSubstituido.PermiteSubstituir.equals("S") && roloSubstituido.CodItem.trim().equals(CodItem) && roloSubstituido.NumLote.trim().equals(NumLote)) {
+                    boolean roloSubstituir = roloOps.getSubstituirMarcarRolo(CodItem, NumLote, NumPeca);
+
+                    AppService srv1 = new AppService();
+                    boolean naoPodeUsarPeca = false;
+                    RolosOrdem itemRolo = new RolosOrdem();
+                    itemRolo.codItem = CodItem;
+                    //itemRolo.endereco = roloSubstituido.getEndereco();
+                    //itemRolo.local = roloSubstituido.getLocal();
+                    itemRolo.numLote = NumLote;
+                    itemRolo.numPeca = NumPeca;
+                    //itemRolo.permiteSubstituir = roloSubstituido.getPermiteSubstituir();
+                    naoPodeUsarPeca = srv1.VerificaPecaSubstituicao(itemRolo);//retorna true se nao puder usar
+
+
+                    if (roloSubstituir && jaMarcado == null && roloSubstituido.PermiteSubstituir.equals("S") && !naoPodeUsarPeca) {
+                        Marcado data = new Marcado();
+                        data.setCodItem(CodItem);
+                        data.setNumLote(NumLote);
+                        data.setNumPeca(NumPeca);
+                        data.setOrdem(0);
+                        data.setPosicao(1);
+
+                        roloSubstituido.setCodItem(CodItem);
+                        roloSubstituido.setNumLote(NumLote);
+                        roloSubstituido.setNumPeca(NumPeca);
+                        roloSubstituido.setPosicao(1);
+                        roloOps.updateRolo(roloSubstituido);
+                        marcadoOps.addMarcado(data);
+                    }
+                }
             }
             List<Marcado> allMarcado = marcadoOps.getAllMarcado();
 
