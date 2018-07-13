@@ -29,6 +29,17 @@ public class DBHandler extends SQLiteOpenHelper {
                     SESSAO_COLUMN_ROLOTROCA + " TEXT " +
                     ")";
 
+    public static final String TABLE_CONFIGURACAO = "configuracao";
+    public static final String CONFIGURACAO_COLUMN_ID = "id";
+    public static final String CONFIGURACAO_COLUMN_ENDERECO_SERVIDOR = "endereco_servidor";
+
+    private static final String CONFIGURACAO_TABLE_CREATE =
+            "CREATE TABLE " + TABLE_CONFIGURACAO + " (" +
+                    CONFIGURACAO_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    CONFIGURACAO_COLUMN_ENDERECO_SERVIDOR + " TEXT " +
+                    ")";
+
+
     public static final String TABLE_ORDEM = "ordem";
     public static final String ORDEM_COLUMN_ID = "id";
     public static final String ORDEM_COLUMN_ORDEM = "ordem";
@@ -90,6 +101,7 @@ public class DBHandler extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(SESSAO_TABLE_CREATE);
+        db.execSQL(CONFIGURACAO_TABLE_CREATE);
         db.execSQL(ORDEM_TABLE_CREATE);
         db.execSQL(ROLO_TABLE_CREATE);
         db.execSQL(MARCADO_TABLE_CREATE);
@@ -100,6 +112,9 @@ public class DBHandler extends SQLiteOpenHelper {
 
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_SESSAO);
         db.execSQL(SESSAO_TABLE_CREATE);
+
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CONFIGURACAO);
+        db.execSQL(CONFIGURACAO_TABLE_CREATE);
 
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ORDEM);
         db.execSQL(ORDEM_TABLE_CREATE);

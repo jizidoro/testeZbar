@@ -36,6 +36,13 @@
 
         </activity>
 
+        <activity android:name="com.malharia.b3.b3malharizbar.activity.ConfiguracaoActivity"
+            android:theme="@style/AppOverlayTheme"
+            android:label="Termina operação">
+
+        </activity>
+
+
         <activity android:name="com.malharia.b3.b3malharizbar.activity.ScanRolosActivity"
             android:theme="@style/AppOverlayTheme"
             android:label="Scan Rolos">

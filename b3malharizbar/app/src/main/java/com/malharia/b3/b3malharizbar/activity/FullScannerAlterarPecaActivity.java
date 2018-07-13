@@ -299,8 +299,7 @@ public class FullScannerAlterarPecaActivity extends BaseScannerActivity implemen
             List<Sessao> allsessao = sessaoOps.getAllSessaos();
             if (allsessao.size() > 0) {
                 primeiro = sessaoOps.getFirstSessao();
-                numTroca = primeiro.getRoloTroca();
-                primeiro.setRoloTroca(null);
+                primeiro.setRoloTroca(0);
                 sessaoOps.updateSessao(primeiro);
             }
 

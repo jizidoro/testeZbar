@@ -74,7 +74,7 @@ public class RoloOperations {
         Cursor cursor = database.query(DBHandler.TABLE_ROLO, new String[] {DBHandler.ROLO_COLUMN_ID, DBHandler.ROLO_COLUMN_CODITEM, DBHandler.ROLO_COLUMN_ENDERECO
                 , DBHandler.ROLO_COLUMN_LOCAL, DBHandler.ROLO_COLUMN_ORDEM, DBHandler.ROLO_COLUMN_PERMITESUBSTITUIR, DBHandler.ROLO_COLUMN_POSICAO
                 , DBHandler.ROLO_COLUMN_NUMLOTE, DBHandler.ROLO_COLUMN_NUMPECA},  DBHandler.ROLO_COLUMN_NUMPECA + " like " + "'%" + nPeca + "%'" + " and " + DBHandler.ROLO_COLUMN_NUMLOTE  + " like " + "'%" + nLote + "%'", null, null, null, null);
-        if (cursor != null) {
+        if (cursor != null && cursor.getCount() > 0) {
             cursor.moveToFirst();
         }
 
@@ -112,7 +112,7 @@ public class RoloOperations {
         Cursor cursor = database.query(DBHandler.TABLE_ROLO, new String[] {DBHandler.ROLO_COLUMN_ID, DBHandler.ROLO_COLUMN_CODITEM, DBHandler.ROLO_COLUMN_ENDERECO
                 , DBHandler.ROLO_COLUMN_LOCAL, DBHandler.ROLO_COLUMN_ORDEM, DBHandler.ROLO_COLUMN_PERMITESUBSTITUIR, DBHandler.ROLO_COLUMN_POSICAO
                 , DBHandler.ROLO_COLUMN_NUMLOTE, DBHandler.ROLO_COLUMN_NUMPECA},  DBHandler.ROLO_COLUMN_NUMLOTE  + " like " + "'%" + nLote + "%'" + " and " + DBHandler.ROLO_COLUMN_POSICAO  + " = " + "0", null, null, null, null);
-        if (cursor != null) {
+        if (cursor != null ) {
             cursor.moveToFirst();
         }
 
@@ -149,8 +149,12 @@ public class RoloOperations {
         Cursor cursor = database.query(DBHandler.TABLE_ROLO, new String[] {DBHandler.ROLO_COLUMN_ID, DBHandler.ROLO_COLUMN_CODITEM, DBHandler.ROLO_COLUMN_ENDERECO
                 , DBHandler.ROLO_COLUMN_LOCAL, DBHandler.ROLO_COLUMN_ORDEM, DBHandler.ROLO_COLUMN_PERMITESUBSTITUIR, DBHandler.ROLO_COLUMN_POSICAO
                 , DBHandler.ROLO_COLUMN_NUMLOTE, DBHandler.ROLO_COLUMN_NUMPECA},  DBHandler.ROLO_COLUMN_NUMLOTE  + " like " + "'%" + nLote + "%'" + " and " + DBHandler.ROLO_COLUMN_POSICAO  + " = " + "0", null, null, null, DBHandler.ROLO_COLUMN_NUMPECA);
-        if (cursor != null) {
+        if (cursor != null && cursor.getCount() > 0) {
             cursor.moveToFirst();
+        }
+        else
+        {
+            return null;
         }
 
         Rolo rolos = new Rolo();

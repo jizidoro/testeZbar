@@ -178,7 +178,6 @@ public class FullScannerFragment extends Fragment implements MessageDialogFragme
         {
             new LongOperation(getContext()).execute(ResultadoScaneado);
         }
-        showMessageDialog("Dados = " + rawResult.getContents());
     }
 
     public void showMessageDialog(String message) {
@@ -276,66 +275,108 @@ public class FullScannerFragment extends Fragment implements MessageDialogFragme
             roloOps.open();
 
             String[] leitura = params[0].split(";");
-            String CodItem = leitura[0];
-            String NumLote = leitura[1];
-            String NumPeca = leitura[2];
-            List<Rolo> allRolos = roloOps.getAllRolos();
-            Rolo roloAtual = roloOps.getMarcarRolo(CodItem ,NumLote ,NumPeca);
+            String CodItem = "";
+            String NumLote = "";
+            String NumPeca = "";
+
+            Rolo roloAtual;
+            if(leitura.length == 4)
+            {
+                CodItem = leitura[0];
+                NumLote = leitura[1];
+                NumPeca = leitura[2];
+                roloAtual = roloOps.getMarcarRolo(CodItem ,NumLote ,NumPeca);
+
+            }
+            else
+            {
+                showMessageDialog("Codigo invalido");
+                roloOps.close();
+                return "Erro";
+            }
 
             marcadoOps = new MarcadoOperations(mContext);
             marcadoOps.open();
 
             Marcado jaMarcado = marcadoOps.getMarcadoByDados(NumLote,NumPeca);
-            if(roloAtual != null && jaMarcado == null) {
+            if(jaMarcado != null)
+            {
+                showMessageDialog("Peça já bipada");
+                return "Executed";
+            }
+            else if(roloAtual != null && jaMarcado == null) {
                 Marcado data = new Marcado();
                 data.setCodItem(CodItem);
                 data.setNumLote(NumLote);
                 data.setNumPeca(NumPeca);
-                data.setOrdem(0);
+                data.setOrdem(roloAtual.Ordem);
                 data.setPosicao(0);
                 roloAtual.setPosicao(1);
                 roloOps.updateRolo(roloAtual);
                 marcadoOps.addMarcado(data);
+                showMessageDialog("Peça adicionada com sucesso");
             }
             else
             {
                 Rolo roloSubstituido = roloOps.getFirstNaoMarcaroRolo(CodItem ,NumLote ,NumPeca);
-                if(roloSubstituido.PermiteSubstituir.equals("S") && roloSubstituido.CodItem.trim().equals(CodItem) && roloSubstituido.NumLote.trim().equals(NumLote)) {
-                    boolean roloSubstituir = roloOps.getSubstituirMarcarRolo(CodItem, NumLote, NumPeca);
+                if(roloSubstituido != null) {
+                    if (roloSubstituido != null && roloSubstituido.PermiteSubstituir.contains("S") && roloSubstituido.CodItem.trim().equals(CodItem) && roloSubstituido.NumLote.trim().equals(NumLote)) {
+                        boolean roloSubstituir = roloOps.getSubstituirMarcarRolo(CodItem, NumLote, NumPeca);
 
-                    AppService srv1 = new AppService();
-                    boolean naoPodeUsarPeca = false;
-                    RolosOrdem itemRolo = new RolosOrdem();
-                    itemRolo.codItem = CodItem;
-                    //itemRolo.endereco = roloSubstituido.getEndereco();
-                    //itemRolo.local = roloSubstituido.getLocal();
-                    itemRolo.numLote = NumLote;
-                    itemRolo.numPeca = NumPeca;
-                    //itemRolo.permiteSubstituir = roloSubstituido.getPermiteSubstituir();
-                    naoPodeUsarPeca = srv1.VerificaPecaSubstituicao(itemRolo);//retorna true se nao puder usar
+                        AppService srv1 = new AppService();
+                        boolean naoPodeUsarPeca = false;
+                        RolosOrdem itemRolo = new RolosOrdem();
+                        itemRolo.codItem = CodItem;
+                        //itemRolo.endereco = roloSubstituido.getEndereco();
+                        //itemRolo.local = roloSubstituido.getLocal();
+                        itemRolo.numLote = NumLote;
+                        itemRolo.numPeca = NumPeca;
+                        //itemRolo.permiteSubstituir = roloSubstituido.getPermiteSubstituir();
+                        naoPodeUsarPeca = srv1.VerificaPecaSubstituicao(itemRolo);//retorna true se nao puder usar
 
+                        if (roloSubstituir && jaMarcado == null && roloSubstituido.PermiteSubstituir.contains("S") && !naoPodeUsarPeca) {
+                            Marcado data = new Marcado();
+                            data.setCodItem(CodItem);
+                            data.setNumLote(NumLote);
+                            data.setNumPeca(NumPeca);
+                            data.setOrdem(roloSubstituido.Ordem);
+                            data.setPosicao(1);
 
-                    if (roloSubstituir && jaMarcado == null && roloSubstituido.PermiteSubstituir.equals("S") && !naoPodeUsarPeca) {
-                        Marcado data = new Marcado();
-                        data.setCodItem(CodItem);
-                        data.setNumLote(NumLote);
-                        data.setNumPeca(NumPeca);
-                        data.setOrdem(0);
-                        data.setPosicao(1);
-
-                        roloSubstituido.setCodItem(CodItem);
-                        roloSubstituido.setNumLote(NumLote);
-                        roloSubstituido.setNumPeca(NumPeca);
-                        roloSubstituido.setPosicao(1);
-                        roloOps.updateRolo(roloSubstituido);
-                        marcadoOps.addMarcado(data);
+                            Rolo newRolo = new Rolo();
+                            newRolo.setId(0);
+                            newRolo.setCodItem(CodItem);
+                            newRolo.Endereco = "SUBS";
+                            newRolo.Local = "SUBS";
+                            newRolo.setNumLote(NumLote);
+                            newRolo.setNumPeca(NumPeca);
+                            newRolo.PermiteSubstituir = "S";
+                            newRolo.Ordem = roloSubstituido.Ordem;
+                            newRolo.setPosicao(1);
+                            roloOps.addRolo(newRolo);
+                            marcadoOps.addMarcado(data);
+                            showMessageDialog("Peça adicionada com sucesso");
+                        } else {
+                            showMessageDialog("Peça com bloqueio pelo PCP");
+                        }
+                    } else {
+                        showMessageDialog("Ordem não permite substituição de peça");
                     }
+                } else {
+                    showMessageDialog("Lote ou codigo invalido");
                 }
             }
+
+            sessaoOps = new SessaoOperations(mContext);
+            sessaoOps.open();
+            List<Sessao> allsessao = sessaoOps.getAllSessaos();
+            Sessao primeiro = new Sessao();
+            if (allsessao.size() > 0) {
+                primeiro = sessaoOps.getFirstSessao();
+            }
+
             List<Marcado> allMarcado = marcadoOps.getAllMarcado();
 
-
-            if(allMarcado.size() >= allRolos.size())
+            if(allMarcado.size() >= primeiro.getRoloTroca() )
             {
                 Intent intent = new Intent(mContext, EncerramentoActivity.class);
                 startActivity(intent);

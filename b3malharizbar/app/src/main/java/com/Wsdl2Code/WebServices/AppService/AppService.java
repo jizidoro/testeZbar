@@ -19,18 +19,17 @@ import org.ksoap2.SoapFault;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
 import org.ksoap2.transport.HttpTransportSE;
 import org.ksoap2.HeaderProperty;
-import java.util.Hashtable;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import android.os.AsyncTask;
-import org.ksoap2.serialization.MarshalFloat;
 
 public class AppService {
 
     public String NAMESPACE ="http://b3consultoria.com.br";
-    public String url="http://192.168.17.102:13359/AppService.asmx";
-    //public String url="http://192.168.0.91:15300/AppService.asmx";
-    public int timeOut = 1200;
+    //public String url="http://192.168.17.102:13359/AppService.asmx"; // pc jhonatan
+    //public String url="http://192.168.0.91:15300/AppService.asmx"; // malharia tst 13-07-2018
+    public String url="http://192.168.0.91:88/AppService.asmx"; // malharia prd 13-07-2018
+    public int timeOut = 15000;
     public IWsdl2CodeEvents eventHandler;
     public SoapProtocolVersion soapVersion;
     
@@ -199,7 +198,50 @@ public class AppService {
         }
         return null;
     }
-    
+
+    public String VerificaOrdemProducao(int ordem){
+        return VerificaOrdemProducao(ordem, null);
+    }
+
+    public String VerificaOrdemProducao(int ordem,List<HeaderProperty> headers){
+        SoapSerializationEnvelope soapEnvelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
+        soapEnvelope.implicitTypes = true;
+        soapEnvelope.dotNet = true;
+        SoapObject soapReq = new SoapObject("http://b3consultoria.com.br","BuscaDadosOrdemProducao");
+        soapReq.addProperty("ordem",ordem);
+        soapEnvelope.setOutputSoapObject(soapReq);
+        HttpTransportSE httpTransport = new HttpTransportSE(url,timeOut);
+        try{
+            if (headers!=null){
+                httpTransport.call("http://b3consultoria.com.br/BuscaDadosOrdemProducao", soapEnvelope,headers);
+            }else{
+                httpTransport.call("http://b3consultoria.com.br/BuscaDadosOrdemProducao", soapEnvelope);
+            }
+            Object retObj = soapEnvelope.bodyIn;
+            if (retObj instanceof SoapFault){
+                SoapFault fault = (SoapFault)retObj;
+                Exception ex = new Exception(fault.faultstring);
+                if (eventHandler != null)
+                    eventHandler.Wsdl2CodeFinishedWithException(ex);
+            }else{
+                SoapObject result=(SoapObject)retObj;
+                if (result.getPropertyCount() > 0){
+                    Object obj = result.getProperty(0);
+                    return "Operação concluida";
+                }
+            }
+        }catch (Exception e) {
+            if (eventHandler != null)
+                eventHandler.Wsdl2CodeFinishedWithException(e);
+            e.printStackTrace();
+        }
+
+
+        Object retObj = soapEnvelope.bodyIn;
+        SoapFault fault = (SoapFault)retObj;
+        return fault.faultstring;
+    }
+
     public void FinalizaSeparacaoAsync(String cracha,int ordem,VectorRolosOrdem rolos,int tempo) throws Exception{
         if (this.eventHandler == null)
             throw new Exception("Async Methods Requires IWsdl2CodeEvents");
@@ -215,7 +257,7 @@ public class AppService {
             };
             @Override
             protected Boolean doInBackground(Void... params) {
-                return FinalizaSeparacao(cracha, ordem, rolos, tempo, headers);
+                return true;//FinalizaSeparacao(cracha, ordem, rolos, tempo, headers);
             }
             @Override
             protected void onPostExecute(Boolean result)
@@ -228,11 +270,11 @@ public class AppService {
         }.execute();
     }
     
-    public boolean FinalizaSeparacao(String cracha,int ordem,VectorRolosOrdem rolos,int tempo){
+    public String FinalizaSeparacao(String cracha,int ordem,VectorRolosOrdem rolos,int tempo){
         return FinalizaSeparacao(cracha, ordem, rolos, tempo, null);
     }
     
-    public boolean FinalizaSeparacao(String cracha,int ordem,VectorRolosOrdem rolos,int tempo,List<HeaderProperty> headers){
+    public String FinalizaSeparacao(String cracha,int ordem,VectorRolosOrdem rolos,int tempo,List<HeaderProperty> headers){
         SoapSerializationEnvelope soapEnvelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
         soapEnvelope.implicitTypes = true;
         soapEnvelope.dotNet = true;
@@ -261,11 +303,11 @@ public class AppService {
                     Object obj = result.getProperty(0);
                     if (obj != null && obj.getClass().equals(SoapPrimitive.class)){
                         SoapPrimitive j =(SoapPrimitive) obj;
-                        boolean resultVariable = Boolean.parseBoolean(j.toString());
-                        return resultVariable;
+                        //boolean resultVariable = Boolean.parseBoolean(j.toString());
+                        return "Operação concluida";
                     }else if (obj!= null && obj instanceof Boolean){
-                        boolean resultVariable = (Boolean) obj;
-                        return resultVariable;
+                        //boolean resultVariable = (Boolean) obj;
+                        return "Operação concluida";
                     }
                 }
             }
@@ -274,7 +316,10 @@ public class AppService {
                 eventHandler.Wsdl2CodeFinishedWithException(e);
             e.printStackTrace();
         }
-        return false;
+
+        Object retObj = soapEnvelope.bodyIn;
+        SoapFault fault = (SoapFault)retObj;
+        return fault.faultstring;
     }
     
     public void VerificaPecaSubstituicaoAsync(RolosOrdem rolo) throws Exception{
@@ -367,7 +412,7 @@ public class AppService {
             };
             @Override
             protected Boolean doInBackground(Void... params) {
-                return EstornaOrdem(cracha, ordem, headers);
+                return true;//EstornaOrdem(cracha, ordem, headers);
             }
             @Override
             protected void onPostExecute(Boolean result)
@@ -380,11 +425,11 @@ public class AppService {
         }.execute();
     }
     
-    public boolean EstornaOrdem(String cracha,int ordem){
+    public String EstornaOrdem(String cracha,int ordem){
         return EstornaOrdem(cracha, ordem, null);
     }
     
-    public boolean EstornaOrdem(String cracha,int ordem,List<HeaderProperty> headers){
+    public String EstornaOrdem(String cracha,int ordem,List<HeaderProperty> headers){
         SoapSerializationEnvelope soapEnvelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
         soapEnvelope.implicitTypes = true;
         soapEnvelope.dotNet = true;
@@ -411,11 +456,11 @@ public class AppService {
                     Object obj = result.getProperty(0);
                     if (obj != null && obj.getClass().equals(SoapPrimitive.class)){
                         SoapPrimitive j =(SoapPrimitive) obj;
-                        boolean resultVariable = Boolean.parseBoolean(j.toString());
-                        return resultVariable;
+                        //boolean resultVariable = Boolean.parseBoolean(j.toString());
+                        return "Estorno concluido";
                     }else if (obj!= null && obj instanceof Boolean){
-                        boolean resultVariable = (Boolean) obj;
-                        return resultVariable;
+                        //boolean resultVariable = (Boolean) obj;
+                        return "Estorno concluido";
                     }
                 }
             }
@@ -424,7 +469,9 @@ public class AppService {
                 eventHandler.Wsdl2CodeFinishedWithException(e);
             e.printStackTrace();
         }
-        return false;
+        Object retObj = soapEnvelope.bodyIn;
+        SoapFault fault = (SoapFault)retObj;
+        return fault.faultstring;
     }
     
 }

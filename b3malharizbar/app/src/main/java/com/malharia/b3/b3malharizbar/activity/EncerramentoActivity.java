@@ -37,6 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Vector;
 
 public class EncerramentoActivity extends AppCompatActivity implements MessageDialogFragment.MessageDialogListener {
     private static final int ZBAR_CAMERA_PERMISSION = 1;
@@ -157,6 +158,7 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
                     new String[]{Manifest.permission.CAMERA}, ZBAR_CAMERA_PERMISSION);
         } else {
             Intent intent = new Intent(this, clss);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
         }
     }
@@ -248,6 +250,66 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
         return rowItems;
     }
 
+    public List<RowItem> GetDadosOrdemMarcados()
+    {
+        //String dbPath = Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), "bancoB3.db3");
+        //var db2 = new SQLiteConnection(dbPath);
+        //db2.Close();
+        //var db = new SQLiteConnection(dbPath);
+        //var dadosSessao = db.Table<Sessao>();
+        //var dadosRolos = db.Table<RolosOrdem>();
+
+        //sessao = dadosSessao.FirstOrDefault();
+
+        sessaoOps = new SessaoOperations(this);
+        sessaoOps.open();
+
+        List<Sessao> teste = sessaoOps.getAllSessaos();
+        if (teste.size() > 0) {
+            Sessao primeiro = sessaoOps.getFirstSessao();
+            sessaoOps.updateSessao(primeiro);
+        }
+        sessaoOps.close();
+
+
+        marcadoOps = new MarcadoOperations(this);
+        marcadoOps.open();
+
+        List<Marcado> allRolos = marcadoOps.getAllMarcado();
+
+        //rolos = dadosRolos.Where(x => x.Ordem == sessao.Ordem).ToList();
+        //db.Close();
+
+        List<String> rolosRetorno =  new ArrayList<>();
+
+
+        if (allRolos.size() > 0)
+        {
+            for (Marcado item : allRolos)
+            {
+                if(item.NumLote != null)
+                {
+                    item.NumLote = item.NumLote.trim();
+                }
+                if(item.NumPeca != null)
+                {
+                    item.NumPeca = item.NumPeca.trim();
+                }
+                rolosRetorno.add(item.NumLote + " _ " + item.NumPeca);
+            }
+        }
+        roloOps.close();
+
+        rowItems = new ArrayList<RowItem>();
+        for (int i = 0; i < rolosRetorno.size(); i++) {
+
+            RowItem items = new RowItem(rolosRetorno.get(i));
+            rowItems.add(items);
+        }
+
+        return rowItems;
+    }
+
 
     @SuppressLint("HandlerLeak")
     Handler handlerOperacaoEncerramento = new Handler() {
@@ -261,7 +323,7 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
                     fimOp.setBackgroundColor(Color.GRAY);
                     break;
                 case 1:
-                    showMessageDialog("Erro no logix");
+                    //showMessageDialog("Erro no logix");
                     fimOp.setBackgroundColor(Color.GREEN);
                     fimOp.setText("Finalizar");
                     fimOp.setEnabled(true);
@@ -306,38 +368,63 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
                 marcadoOps.open();
                 List<Marcado> allMarcado = marcadoOps.getAllMarcado();
 
-                if (allMarcado.size() >= allRolos.size() && allRolos.size() > 0) {
-                    sessaoOps = new SessaoOperations(mContext);
-                    sessaoOps.open();
 
-                    List<Sessao> allsessao = sessaoOps.getAllSessaos();
-                    Sessao primeiro = new Sessao();
-                    if (allsessao.size() > 0) {
-                        primeiro = sessaoOps.getFirstSessao();
-                        long tsAgora = (System.currentTimeMillis()/1000/60);
-                        primeiro.setFimOperacao(tsAgora);
-                        sessaoOps.updateSessao(primeiro);
-                    }
+                sessaoOps = new SessaoOperations(mContext);
+                sessaoOps.open();
+                List<Sessao> allsessao = sessaoOps.getAllSessaos();
+                Sessao primeiro = new Sessao();
+                if (allsessao.size() > 0) {
+                    primeiro = sessaoOps.getFirstSessao();
+                    long tsAgora = (System.currentTimeMillis()/1000/60);
+                    primeiro.setFimOperacao(tsAgora);
+                    sessaoOps.updateSessao(primeiro);
+                }
+
+                if (allMarcado.size() == primeiro.getRoloTroca() ) {
 
                     int tempoTotalOperacao = (int)(primeiro.getFimOperacao() - primeiro.getInicioOperacao());
 
                     VectorRolosOrdem rolov = new VectorRolosOrdem();
-                    for (Rolo item : allRolos) {
-                        RolosOrdem itemRolo = new RolosOrdem();
-                        itemRolo.codItem = item.getCodItem();
-                        itemRolo.endereco = item.getEndereco();
-                        itemRolo.local = item.getLocal();
-                        itemRolo.numLote = item.getNumLote();
-                        itemRolo.numPeca = item.getNumPeca();
-                        itemRolo.permiteSubstituir = item.getPermiteSubstituir();
-                        rolov.add(itemRolo);
+
+                    List<String> codMarcados = new Vector<String>();
+                    for (Marcado item : allMarcado) {
+                        codMarcados.add(item.getNumPeca());
                     }
 
+                    for (Rolo item : allRolos) {
+                        for(String s : codMarcados) {
+                            if (s.trim().contains(item.getNumPeca().trim())) {
+                                RolosOrdem itemRolo = new RolosOrdem();
+                                itemRolo.codItem = item.getCodItem();
+                                itemRolo.endereco = item.getEndereco();
+                                itemRolo.local = item.getLocal();
+                                itemRolo.numLote = item.getNumLote();
+                                itemRolo.numPeca = item.getNumPeca();
+                                itemRolo.permiteSubstituir = item.getPermiteSubstituir();
+                                rolov.add(itemRolo);
+                            }
+                        }
+                    }
 
+                    /*
+                    for (Marcado item : allMarcado) {
+                        RolosOrdem itemRolo = new RolosOrdem();
+                        itemRolo.codItem = item.getCodItem();
+                        itemRolo.endereco = "END";
+                        itemRolo.local = "END";
+                        itemRolo.numLote = item.getNumLote();
+                        itemRolo.numPeca = item.getNumPeca();
+                        itemRolo.permiteSubstituir = "S";
+                        rolov.add(itemRolo);
+                    }
+                    */
                     try {
                         AppService srv1 = new AppService();
                         //boolean operacaoFim = srv1.FinalizaSeparacao(primeiro.getCracha(), primeiro.getOrdem(), rolov , tempoTotalOperacao);
-                        boolean operacaoFim = srv1.FinalizaSeparacao(primeiro.getCracha(), primeiro.getOrdem(), rolov,tempoTotalOperacao);
+                        String operacaoFim = srv1.FinalizaSeparacao(primeiro.getCracha(), primeiro.getOrdem(), rolov,tempoTotalOperacao);
+                        showMessageDialog(operacaoFim);
+                        handlerOperacaoEncerramento.sendEmptyMessage(1);
+                        /*
                         if(operacaoFim)
                         {
                             handlerOperacaoEncerramento.sendEmptyMessage(0);
@@ -347,6 +434,7 @@ public class EncerramentoActivity extends AppCompatActivity implements MessageDi
                             handlerOperacaoEncerramento.sendEmptyMessage(1);
 
                         }
+                        */
 
                     } catch (Exception ex) {
                         handlerOperacaoEncerramento.sendEmptyMessage(2);

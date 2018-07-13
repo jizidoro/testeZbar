@@ -9,13 +9,13 @@ public class Sessao {
 
     public String Cracha;
 
-    public String RoloTroca;
+    public int RoloTroca;
 
     public long FimOperacao;
 
     public long InicioOperacao;
 
-    public Sessao(long id, String cracha, int ordem ,long inicioOperacao,long fimOperacao ,String roloTroca){
+    public Sessao(long id, String cracha, int ordem ,long inicioOperacao,long fimOperacao ,int roloTroca){
         this.Id = id;
         this.Cracha = cracha;
         this.Ordem = ordem;
@@ -55,11 +55,11 @@ public class Sessao {
 
     public void setFimOperacao(long fimOperacao){this.FimOperacao = fimOperacao;}
 
-    public String getRoloTroca(){
+    public int getRoloTroca(){
         return this.RoloTroca;
     }
 
-    public void setRoloTroca(String roloTroca){
+    public void setRoloTroca(int roloTroca){
         this.RoloTroca = roloTroca;
     }
 

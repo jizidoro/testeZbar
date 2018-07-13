@@ -186,8 +186,8 @@ public class FullScannerScanOrdemActivity extends BaseScannerActivity implements
             r.play();
         } catch (Exception e) {}
         ResultadoScaneado = rawResult.getContents();
-
-        showMessageDialog("Número da ordem = " + rawResult.getContents() );
+        new LongOperation(this).execute(ResultadoScaneado);
+        //showMessageDialog("Número da ordem = " + rawResult.getContents() );
 
     }
 
@@ -215,13 +215,6 @@ public class FullScannerScanOrdemActivity extends BaseScannerActivity implements
     public void onDialogPositiveClick(DialogFragment dialog) {
         // Resume the camera
         mScannerView.resumeCameraPreview(this);
-
-
-        if(ResultadoScaneado != null)
-        {
-            new LongOperation(this).execute(ResultadoScaneado);
-
-        }
 
     }
 
@@ -301,6 +294,21 @@ public class FullScannerScanOrdemActivity extends BaseScannerActivity implements
 
             AppService srv1 = new AppService();
             int numero_ordem = Integer.parseInt(params[0]);
+
+
+
+            String isOrdemBoa = srv1.VerificaOrdemProducao(numero_ordem);
+
+            if(!isOrdemBoa.contains("Operação concluida"))
+            {
+                showMessageDialog(isOrdemBoa);
+                return "Executed";
+            }
+            else
+            {
+                showMessageDialog("Ordem sendo processada");
+            }
+
             List<RolosOrdem> rolos = srv1.BuscaDadosOrdemProducao(numero_ordem);
             //txt.setText("Web service funcionando.");
 
@@ -308,18 +316,10 @@ public class FullScannerScanOrdemActivity extends BaseScannerActivity implements
                 sessaoOps = new SessaoOperations(mContext);
                 sessaoOps.open();
 
-                List<Sessao> allsessao = sessaoOps.getAllSessaos();
-                if (allsessao.size() > 0) {
-                    Sessao primeiro = sessaoOps.getFirstSessao();
-                    primeiro.setOrdem(numero_ordem);
-                    long tsAgora = (System.currentTimeMillis()/1000/60);
-                    primeiro.setInicioOperacao(tsAgora);
-                    sessaoOps.updateSessao(primeiro);
-                }
 
                 roloOps = new RoloOperations(mContext);
                 roloOps.open();
-
+                int qtdRolos = 0;
                 for(RolosOrdem item : rolos)
                 {
                     Rolo data = new Rolo();
@@ -332,7 +332,20 @@ public class FullScannerScanOrdemActivity extends BaseScannerActivity implements
                     data.Posicao = 0;
                     data.Ordem = numero_ordem;
                     roloOps.addRolo(data);
+                    qtdRolos++;
                 }
+
+                List<Sessao> allsessao = sessaoOps.getAllSessaos();
+                if (allsessao.size() > 0) {
+                    Sessao primeiro = sessaoOps.getFirstSessao();
+                    primeiro.setOrdem(numero_ordem);
+                    long tsAgora = (System.currentTimeMillis()/1000/60);
+                    primeiro.setInicioOperacao(tsAgora);
+                    primeiro.setRoloTroca(qtdRolos);
+                    sessaoOps.updateSessao(primeiro);
+                }
+
+
 
                 List<Rolo> allRolos = roloOps.getAllRolos();
 

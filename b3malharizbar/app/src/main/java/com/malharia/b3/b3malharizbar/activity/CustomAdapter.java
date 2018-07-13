@@ -80,6 +80,14 @@ public class CustomAdapter extends BaseAdapter {
             {
                 txtTitle.setBackgroundColor(0xFFFFFF00);
             }
+            else
+            {
+                txtTitle.setBackgroundColor(0xFFFFFFFF);
+            }
+        }
+        else
+        {
+            txtTitle.setBackgroundColor(0xFFFFFFFF);
         }
 
         return convertView;

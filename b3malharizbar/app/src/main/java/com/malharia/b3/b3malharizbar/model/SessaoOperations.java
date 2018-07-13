@@ -55,7 +55,7 @@ public class SessaoOperations {
         if (cursor != null)
             cursor.moveToFirst();
 
-        Sessao e = new Sessao(Integer.parseInt(cursor.getString(0)),cursor.getString(1),Integer.parseInt(cursor.getString(2)),Integer.parseInt(cursor.getString(3)),Integer.parseInt(cursor.getString(4)),cursor.getString(5));
+        Sessao e = new Sessao(Integer.parseInt(cursor.getString(0)),cursor.getString(1),Integer.parseInt(cursor.getString(2)),Integer.parseInt(cursor.getString(3)),Integer.parseInt(cursor.getString(4)),cursor.getInt(5));
 
         cursor.close();
         return e;
@@ -67,7 +67,7 @@ public class SessaoOperations {
         if (cursor != null)
             cursor.moveToFirst();
 
-        Sessao e = new Sessao(Integer.parseInt(cursor.getString(0)),cursor.getString(1),Integer.parseInt(cursor.getString(2)),Integer.parseInt(cursor.getString(3)),Integer.parseInt(cursor.getString(4)),cursor.getString(5));
+        Sessao e = new Sessao(Integer.parseInt(cursor.getString(0)),cursor.getString(1),Integer.parseInt(cursor.getString(2)),Integer.parseInt(cursor.getString(3)),Integer.parseInt(cursor.getString(4)),cursor.getInt(5));
 
         cursor.close();
         return e;
@@ -86,7 +86,7 @@ public class SessaoOperations {
                 rolo.setOrdem(cursor.getInt(cursor.getColumnIndex(DBHandler.SESSAO_COLUMN_ORDEM)));
                 rolo.setInicioOperacao(cursor.getInt(cursor.getColumnIndex(DBHandler.SESSAO_COLUMN_INICIOOPERACAO)));
                 rolo.setFimOperacao(cursor.getInt(cursor.getColumnIndex(DBHandler.SESSAO_COLUMN_FIMOPERACAO)));
-                rolo.setRoloTroca(cursor.getString(cursor.getColumnIndex(DBHandler.SESSAO_COLUMN_ROLOTROCA)));
+                rolo.setRoloTroca(cursor.getInt(cursor.getColumnIndex(DBHandler.SESSAO_COLUMN_ROLOTROCA)));
                 rolos.add(rolo);
             }
         }
@@ -125,7 +125,7 @@ public class SessaoOperations {
             data.setOrdem(cursor.getInt(cursor.getColumnIndex(DBHandler.SESSAO_COLUMN_ORDEM)));
             data.setInicioOperacao(cursor.getInt(cursor.getColumnIndex(DBHandler.SESSAO_COLUMN_INICIOOPERACAO)));
             data.setFimOperacao(cursor.getInt(cursor.getColumnIndex(DBHandler.SESSAO_COLUMN_FIMOPERACAO)));
-            data.setRoloTroca(cursor.getString(cursor.getColumnIndex(DBHandler.SESSAO_COLUMN_ROLOTROCA)));
+            data.setRoloTroca(cursor.getInt(cursor.getColumnIndex(DBHandler.SESSAO_COLUMN_ROLOTROCA)));
         }
         cursor.close();
 

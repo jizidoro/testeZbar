@@ -171,6 +171,7 @@ public class FullScannerScanEstornaOrdemActivity extends BaseScannerActivity imp
                     new String[]{Manifest.permission.CAMERA}, ZBAR_CAMERA_PERMISSION);
         } else {
             Intent intent = new Intent(this, clss);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
         }
     }
@@ -189,9 +190,7 @@ public class FullScannerScanEstornaOrdemActivity extends BaseScannerActivity imp
             new LongOperation(this).execute(ResultadoScaneado);
 
         }
-        showMessageDialog("Dados = " + rawResult.getContents());
-
-
+        //showMessageDialog("Dados = " + rawResult.getContents());
     }
 
     public void showMessageDialog(String message) {
@@ -218,16 +217,6 @@ public class FullScannerScanEstornaOrdemActivity extends BaseScannerActivity imp
     public void onDialogPositiveClick(DialogFragment dialog) {
         // Resume the camera
         mScannerView.resumeCameraPreview(this);
-
-        if(ResultadoScaneado != null)
-        {
-            mScannerView.stopCameraPreview(); //stopPreview
-            mScannerView.stopCamera();
-            mScannerView.destroyDrawingCache();
-
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-        }
 
     }
 
@@ -331,12 +320,14 @@ public class FullScannerScanEstornaOrdemActivity extends BaseScannerActivity imp
                 }
 
                 try {
-                    boolean estornado = srv1.EstornaOrdem(primeiro.getCracha(), primeiro.getOrdem());
-                    if (estornado) {
+                    String estornado = srv1.EstornaOrdem(primeiro.getCracha(), primeiro.getOrdem());
+
+                    if (estornado.equals("Estorno concluido")) {
                         myHandler.sendEmptyMessage(0);
                     } else {
-                        myHandler.sendEmptyMessage(1);
+                        showMessageDialog(estornado);
                     }
+
                 } catch (Exception ex) {
                     myHandler.sendEmptyMessage(2);
                     //showMessageDialog(ex.getMessage());
